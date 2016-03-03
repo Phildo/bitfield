@@ -16,7 +16,7 @@ $(OUTFILE): $(HEADERS) $(SOURCES)
 	$(CC) $(CFLAGS) $(LFLAGS) $(SOURCES) -o $(OUTFILE)
 
 run: $(OUTFILE)
-	./$(OUTFILE)
+	./$(OUTFILE) -i ~/Desktop/font.bmp -o ~/Desktop/font.48x64bf_latest
 
 $(OUTFILE).dSYM: $(HEADERS) $(SOURCES)
 	$(CC) $(DEBUGFLAGS) $(CFLAGS) $(LFLAGS) $(SOURCES) -o $(OUTFILE)

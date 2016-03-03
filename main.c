@@ -8,8 +8,8 @@
 #include "pix.h"
 #include "io.h"
 
-static char *usage = "Usage: pixql -i input_file -o output_file";
-static char *default_out = "out.bmp";
+static char *usage = "Usage: bf -i input_file -o outfile";
+static char *default_out = "out.bf";
 
 ERR_EXISTS parseArgs(int argc, char **argv, char **infile, char **outfile, PixErr *err)
 {
