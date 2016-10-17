@@ -19,7 +19,7 @@ $(OUTFILE): $(HEADERS) $(SOURCES)
 #	./$(OUTFILE) -i ~/Desktop/font.bmp -o ~/Desktop/font.48x64bf_latest
 
 run: $(OUTFILE)
-	./$(OUTFILE) -i ~/Desktop/logo.bmp -o ~/Desktop/font.256x128pi_latest
+	./$(OUTFILE) -i ~/Desktop/logo.bmp -o ~/Desktop/logo.256x128pi_latest
 
 $(OUTFILE).dSYM: $(HEADERS) $(SOURCES)
 	$(CC) $(DEBUGFLAGS) $(CFLAGS) $(LFLAGS) $(SOURCES) -o $(OUTFILE)
