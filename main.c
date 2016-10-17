@@ -19,8 +19,8 @@ ERR_EXISTS parseArgs(int argc, char **argv, char **infile, char **outfile, PixEr
     else if(cmp(argv[i],"-o")  == 0) *outfile   = argv[++i];
   }
 
-  if(!*infile)               ERROR("%s\nNo input file specified.",  usage);
-  if(!*outfile)              *outfile = default_out; //ERROR("%s\nNo output file specified.", usage);
+  if(!*infile)  ERROR("%s\nNo input file specified.",  usage);
+  if(!*outfile) *outfile = default_out; //ERROR("%s\nNo output file specified.", usage);
 
   return NO_ERR;
 }

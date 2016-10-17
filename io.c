@@ -15,9 +15,13 @@ ERR_EXISTS readFile(const char *infile, PixImg *img, PixErr *err)
 
 ERR_EXISTS writeFile(const char *outfile, PixImg *img, PixErr *err)
 {
+/*
   BitField b = {0};
   if(!imageToBitField(img, &b, err)) return ERR;
   if(!writeBitField(outfile, &b, err)) return ERR;
+*/
+
+  if(!writePixImg(outfile, img, err)) return ERR;
 
   return NO_ERR;
 }

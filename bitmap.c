@@ -160,6 +160,38 @@ ERR_EXISTS writeBitField(const char *outfile, BitField *b, PixErr *err)
   return NO_ERR;
 }
 
+ERR_EXISTS writePixImg(const char *outfile, PixImg *img, PixErr *err)
+{
+  int array_size = img->width*img->height*4;
+  byte *array = calloc(array_size,1);
+  if(!array) ERROR("Out of memory");
+
+  for(int y = 0; y < img->height; y++)
+  {
+    for(int x = 0; x < img->width; x++)
+    {
+      int index = ((y*img->width)+x);
+      array[index*4+0] = img->data[index+0].r;
+      array[index*4+1] = img->data[index+1].g;
+      array[index*4+2] = img->data[index+2].b;
+      array[index*4+3] = img->data[index+3].a;
+    }
+  }
+
+  FILE *out;
+  FILE *fp;
+  if(!(out = fopen(outfile, "w"))) ERROR("Can't open output file- %s",outfile);
+  fp = out;
+
+  fwrite(array, sizeof(byte), array_size, out);
+
+  fclose(out);
+
+  free(array);
+
+  return NO_ERR;
+}
+
 byte maskMap(uint32 mask)
 {
   switch(mask)
