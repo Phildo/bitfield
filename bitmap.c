@@ -171,10 +171,10 @@ ERR_EXISTS writePixImg(const char *outfile, PixImg *img, PixErr *err)
     for(int x = 0; x < img->width; x++)
     {
       int index = ((y*img->width)+x);
-      array[index*4+0] = img->data[index+0].r;
-      array[index*4+1] = img->data[index+1].g;
-      array[index*4+2] = img->data[index+2].b;
-      array[index*4+3] = img->data[index+3].a;
+      array[index*4+0] = img->data[index].r;
+      array[index*4+1] = img->data[index].g;
+      array[index*4+2] = img->data[index].b;
+      array[index*4+3] = img->data[index].a;
     }
   }
 
