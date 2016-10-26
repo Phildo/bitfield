@@ -10,6 +10,7 @@
 
 static char *usage = "Usage: bf -i input_file -o outfile";
 static char *default_out = "out.bf";
+static int out_type = 0; //0 = piximg, 1 = bitfield
 
 ERR_EXISTS parseArgs(int argc, char **argv, char **infile, char **outfile, PixErr *err)
 {
@@ -17,6 +18,12 @@ ERR_EXISTS parseArgs(int argc, char **argv, char **infile, char **outfile, PixEr
   {
          if(cmp(argv[i],"-i")  == 0) *infile    = argv[++i];
     else if(cmp(argv[i],"-o")  == 0) *outfile   = argv[++i];
+    else if(cmp(argv[i],"-t")  == 0)
+    {
+      i++;
+           if(cmp(argv[i],"pi") == 0) out_type = 0;
+      else if(cmp(argv[i],"bf") == 0) out_type = 1;
+    }
   }
 
   if(!*infile)  ERROR("%s\nNo input file specified.",  usage);
@@ -41,7 +48,7 @@ int main(int argc, char **argv)
     { fprintf(stderr,"%s\n",err.info); return 1; }
   }
 
-  if(!writeFile(outfile_str, &img, &err))
+  if(!writeFile(outfile_str, &img, out_type, &err))
   { fprintf(stderr,"%s\n",err.info); return 1; }
 
   //to please valgrind

@@ -1,6 +1,6 @@
 CURDIR = $(shell pwd)
 SRCDIR = .
-OUTFILE = bf
+OUTFILE = piximg
 CC = gcc
 DEBUGGER = gdb -q
 CFLAGS = -Wall -std=c99
@@ -15,11 +15,8 @@ SOURCES:=$(filter-out %/test.c, $(ALL_SOURCES))
 $(OUTFILE): $(HEADERS) $(SOURCES)
 	$(CC) $(CFLAGS) $(LFLAGS) $(SOURCES) -o $(OUTFILE)
 
-#run: $(OUTFILE)
-#	./$(OUTFILE) -i ~/Desktop/font.bmp -o ~/Desktop/font.48x64bf_latest
-
 run: $(OUTFILE)
-	./$(OUTFILE) -i ~/Desktop/logo.bmp -o ~/Desktop/logo.256x128pi_latest
+	./$(OUTFILE) -i ~/Desktop/img.bmp -o ~/Desktop/img
 
 $(OUTFILE).dSYM: $(HEADERS) $(SOURCES)
 	$(CC) $(DEBUGFLAGS) $(CFLAGS) $(LFLAGS) $(SOURCES) -o $(OUTFILE)
