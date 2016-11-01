@@ -150,7 +150,7 @@ ERR_EXISTS readBitmap(const char *infile, Bitmap *b, PixErr *err)
 ERR_EXISTS writeBitField(const char *outfile, BitField *b, PixErr *err)
 {
   char out_name[2048];
-  sprintf(out_name,"%s.%dx%xbf",outfile,b->width,b->height);
+  sprintf(out_name,"%s.%dx%dbf",outfile,b->width,b->height);
 
   FILE *out;
   FILE *fp;
@@ -166,7 +166,7 @@ ERR_EXISTS writeBitField(const char *outfile, BitField *b, PixErr *err)
 ERR_EXISTS writePixImg(const char *outfile, PixImg *img, PixErr *err)
 {
   char out_name[2048];
-  sprintf(out_name,"%s.%dx%xpi",outfile,img->width,img->height);
+  sprintf(out_name,"%s.%dx%dpi",outfile,img->width,img->height);
 
   int array_size = img->width*img->height*4;
   byte *array = calloc(array_size,1);

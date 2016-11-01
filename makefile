@@ -12,17 +12,19 @@ ALL_SOURCES:=$(wildcard $(CURDIR)/$(SRCDIR)/*.c)
 HEADERS:=$(ALL_HEADERS)
 SOURCES:=$(filter-out %/test.c, $(ALL_SOURCES))
 
+ARGS=-i ~/Desktop/img.bmp -o ~/Desktop/img
+
 $(OUTFILE): $(HEADERS) $(SOURCES)
 	$(CC) $(CFLAGS) $(LFLAGS) $(SOURCES) -o $(OUTFILE)
 
 run: $(OUTFILE)
-	./$(OUTFILE) -i ~/Desktop/img.bmp -o ~/Desktop/img
+	./$(OUTFILE) $(ARGS)
 
 $(OUTFILE).dSYM: $(HEADERS) $(SOURCES)
 	$(CC) $(DEBUGFLAGS) $(CFLAGS) $(LFLAGS) $(SOURCES) -o $(OUTFILE)
 
 debug: $(OUTFILE).dSYM
-	$(DEBUGGER) $(OUTFILE)
+	$(DEBUGGER) --args $(OUTFILE) $(ARGS)
 
 clean:
 	for f in $(OUTFILE) $(OUTFILE).dSYM ; do if [ -d $$f ] ; then rm -r $$f ; elif [ -f $$f ] ; then rm $$f ; fi ; done

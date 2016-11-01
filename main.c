@@ -8,8 +8,8 @@
 #include "pix.h"
 #include "io.h"
 
-static char *usage = "Usage: bf -i input_file -o outfile";
-static char *default_out = "out.bf";
+static char *usage = "Usage: piximg -i input_file -o outfile -t [pi|bf]";
+static char *default_out = "out";
 static int out_type = 0; //0 = piximg, 1 = bitfield
 
 ERR_EXISTS parseArgs(int argc, char **argv, char **infile, char **outfile, PixErr *err)
