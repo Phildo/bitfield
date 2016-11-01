@@ -147,14 +147,14 @@ ERR_EXISTS readBitmap(const char *infile, Bitmap *b, PixErr *err)
   return NO_ERR;
 }
 
-ERR_EXISTS writeBitField(const char *outfile, BitField *b, PixErr *err)
+ERR_EXISTS writeBitField(const char *out_name, BitField *b, PixErr *err)
 {
-  char out_name[2048];
-  sprintf(out_name,"%s.%dx%dbf",outfile,b->width,b->height);
+  char out_file[2048];
+  sprintf(out_file,"%s.%dx%dbf",out_name,b->width,b->height);
 
   FILE *out;
   FILE *fp;
-  if(!(out = fopen(outfile, "w"))) ERROR("Can't open output file- %s",outfile);
+  if(!(out = fopen(out_file, "w"))) ERROR("Can't open output file- %s",out_file);
   fp = out;
 
   fwrite(b->data, sizeof(byte), b->bytes, out);
@@ -163,10 +163,10 @@ ERR_EXISTS writeBitField(const char *outfile, BitField *b, PixErr *err)
   return NO_ERR;
 }
 
-ERR_EXISTS writePixImg(const char *outfile, PixImg *img, PixErr *err)
+ERR_EXISTS writePixImg(const char *out_name, PixImg *img, PixErr *err)
 {
-  char out_name[2048];
-  sprintf(out_name,"%s.%dx%dpi",outfile,img->width,img->height);
+  char out_file[2048];
+  sprintf(out_file,"%s.%dx%dpi",out_name,img->width,img->height);
 
   int array_size = img->width*img->height*4;
   byte *array = calloc(array_size,1);
@@ -186,7 +186,7 @@ ERR_EXISTS writePixImg(const char *outfile, PixImg *img, PixErr *err)
 
   FILE *out;
   FILE *fp;
-  if(!(out = fopen(out_name, "w"))) ERROR("Can't open output file- %s",out_name);
+  if(!(out = fopen(out_file, "w"))) ERROR("Can't open output file- %s",out_file);
   fp = out;
 
   fwrite(array, sizeof(byte), array_size, out);
