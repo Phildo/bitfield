@@ -142,10 +142,15 @@ typedef struct
 } BitField;
 
 ERR_EXISTS readBitmap(const char *infile, Bitmap *b, PixErr *err);
+ERR_EXISTS writeBitmap(const char *out_name, Bitmap *b, PixErr *err);
+ERR_EXISTS readBitField(const char *infile, BitField *b, PixErr *err);
 ERR_EXISTS writeBitField(const char *out_name, BitField *b, PixErr *err);
+ERR_EXISTS readPixImg(const char *infile, PixImg *img, PixErr *err);
 ERR_EXISTS writePixImg(const char *out_name, PixImg *img, PixErr *err);
 
 ERR_EXISTS bitmapToImage(Bitmap *b, PixImg *img, PixErr *err);
+ERR_EXISTS imageToBitmap(PixImg *img, Bitmap *b, PixErr *err);
+ERR_EXISTS bitFieldToImage(BitField *b, PixImg *img, PixErr *err);
 ERR_EXISTS imageToBitField(PixImg *img, BitField *b, PixErr *err);
 
 #endif

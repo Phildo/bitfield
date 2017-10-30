@@ -13,6 +13,7 @@ HEADERS:=$(ALL_HEADERS)
 SOURCES:=$(filter-out %/test.c, $(ALL_SOURCES))
 
 ARGS=-i ~/Desktop/img.bmp -o ~/Desktop/img
+ARGS=-r -i ~/Desktop/img.32x32pi -o ~/Desktop/img2
 
 $(OUTFILE): $(HEADERS) $(SOURCES)
 	$(CC) $(CFLAGS) $(LFLAGS) $(SOURCES) -o $(OUTFILE)

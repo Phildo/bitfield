@@ -8,6 +8,7 @@
 #include "str.h"
 
 #define READFIELD(field) ({ if(sizeof(field) != fread(&field, sizeof(byte), sizeof(field), fp)) { sprintf(err->info, "Error reading field"); return ERR; } })
+#define WRITEFIELD(field) ({ if(sizeof(field) != fwrite(&field, sizeof(byte), sizeof(field), fp)) { sprintf(err->info, "Error reading field"); return ERR; } })
 
 static ERR_EXISTS readFileHeader(FILE *fp, BitmapFileHeader *bfh, PixErr *err)
 {
@@ -19,6 +20,17 @@ static ERR_EXISTS readFileHeader(FILE *fp, BitmapFileHeader *bfh, PixErr *err)
   READFIELD(bfh->reserved_b);
   READFIELD(bfh->offset);
   if(bfh->size <= 0) ERROR("Data offset invalid");
+
+  return NO_ERR;
+}
+
+static ERR_EXISTS writeFileHeader(FILE *fp, BitmapFileHeader *bfh, PixErr *err)
+{
+  fwrite("BM", sizeof(char), 2, fp);
+  WRITEFIELD(bfh->size);
+  WRITEFIELD(bfh->reserved_a);
+  WRITEFIELD(bfh->reserved_b);
+  WRITEFIELD(bfh->offset);
 
   return NO_ERR;
 }
@@ -68,6 +80,30 @@ static ERR_EXISTS readDIBHeader(FILE *fp, DIBHeader *dh, PixErr *err)
   return NO_ERR;
 }
 
+static ERR_EXISTS writeDIBHeader(FILE *fp, DIBHeader *dh, PixErr *err)
+{
+  WRITEFIELD(dh->header_size);
+  BITMAPINFOHEADER *ih = &dh->bitmap_info_header;
+  BITMAPV5HEADER *v5h = &dh->bitmap_v5_header;
+  WRITEFIELD(ih->width);
+  WRITEFIELD(ih->height);
+  WRITEFIELD(ih->nplanes);
+  WRITEFIELD(ih->bpp);
+  WRITEFIELD(ih->compression);
+  WRITEFIELD(ih->image_size);
+  WRITEFIELD(ih->horiz_resolution);
+  WRITEFIELD(ih->vert_resolution);
+  WRITEFIELD(ih->ncolors);
+  WRITEFIELD(ih->nimportantcolors);
+
+  WRITEFIELD(v5h->bV5RedMask);
+  WRITEFIELD(v5h->bV5GreenMask);
+  WRITEFIELD(v5h->bV5BlueMask);
+  WRITEFIELD(v5h->bV5AlphaMask);
+
+  return NO_ERR;
+}
+
 static ERR_EXISTS readColorTable(FILE *fp, byte *b, int size, PixErr *err)
 {
   return NO_ERR;
@@ -81,6 +117,12 @@ static ERR_EXISTS readGap(FILE *fp, byte *b, int size, PixErr *err)
 static ERR_EXISTS readPixelArray(FILE *fp, byte *b, int size, PixErr *err)
 {
   if(size != fread(b, sizeof(byte), size, fp)) ERROR("Can't read specified length at offset in bitmap");
+  return NO_ERR;
+}
+
+static ERR_EXISTS writePixelArray(FILE *fp, byte *b, int size, PixErr *err)
+{
+  if(size != fwrite(b, sizeof(byte), size, fp)) ERROR("Can't write specified length at offset in bitmap");
   return NO_ERR;
 }
 
@@ -147,6 +189,90 @@ ERR_EXISTS readBitmap(const char *infile, Bitmap *b, PixErr *err)
   return NO_ERR;
 }
 
+ERR_EXISTS writeBitmap(const char *outname, Bitmap *b, PixErr *err)
+{
+  char out_file[2048];
+  sprintf(out_file,"%s.bmp",outname);
+  InternalBitmap *simple = &b->simple;
+
+  FILE *out;
+  FILE *fp;
+  if(!(out = fopen(out_file, "w"))) ERROR("Can't open output file- %s",out_file);
+  fp = out;
+
+  BitmapFileHeader *bh = &b->bitmap_file_header;
+  bh->size = simple->offset_to_data+simple->pixel_n_bytes;
+  bh->reserved_a = 0;//dunno, normally 0
+  bh->reserved_b = 0;//dunno, normally 0
+  bh->offset = simple->offset_to_data;
+  if(!writeFileHeader(out, bh, err)) { fclose(out); return ERR; }
+
+  DIBHeader *dh = &b->dib_header;
+  dh->header_size = BITMAPV5HEADER_SIZE;
+
+  BITMAPINFOHEADER *ih = &dh->bitmap_info_header;
+  BITMAPV5HEADER *v5h = &dh->bitmap_v5_header;
+  ih->width = simple->width;
+  ih->height = simple->height;
+  ih->nplanes = 1;
+  ih->bpp = 32;
+  ih->compression = 3;
+  ih->image_size = simple->width*simple->height*4;
+  ih->horiz_resolution = 0;//was 2835 with 32x32 bmp...
+  ih->vert_resolution = 0;//was 2835 with 32x32 bmp...
+  ih->ncolors = 0;//experimentally. but don't understand...
+  ih->nimportantcolors = 0;//experimentally. but don't understand...
+
+  v5h->bV5RedMask   = 0x00FF0000;
+  v5h->bV5GreenMask = 0x0000FF00;
+  v5h->bV5BlueMask  = 0x000000FF;
+  v5h->bV5AlphaMask = 0xFF000000;
+
+  if(!writeDIBHeader(out, dh, err)) { fclose(out); return ERR; }
+
+  if(fseek(out, simple->offset_to_data, SEEK_SET) == -1) ERROR("Unable to write bitmap file");
+  if(!writePixelArray(out, b->pixel_array, simple->pixel_n_bytes, err)) { fclose(out); return ERR; }
+
+  fclose(out);
+
+  return NO_ERR;
+}
+
+ERR_EXISTS readBitField(const char *infile, BitField *b, PixErr *err)
+{
+  char n_parse_buff[100];
+  int pbuff_i = 0;
+
+  int parse_i = 0;
+  while(infile[parse_i] != '.' && infile[parse_i] != '\0') parse_i++;
+  if(infile[parse_i] == '\0') ERROR("Filename %s invalid piximage file- expected blah.#x#pi (no . extension found)",infile);
+  parse_i++;
+  pbuff_i = 0;
+  while(infile[parse_i] != 'x' && infile[parse_i] != '\0') { n_parse_buff[pbuff_i] = infile[parse_i]; pbuff_i++; parse_i++; }
+  if(infile[parse_i] == '\0') ERROR("Filename %s invalid piximage file- expected blah.#x#pi (no x found in extension)",infile);
+  n_parse_buff[parse_i] = '\0';
+  b->width = atoi(n_parse_buff);
+  parse_i++;
+  pbuff_i = 0;
+  while(infile[parse_i] != 'p' && infile[parse_i] != '\0') { n_parse_buff[pbuff_i] = infile[parse_i]; pbuff_i++; parse_i++; }
+  if(infile[parse_i] == '\0') ERROR("Filename %s invalid piximage file- expected blah.#x#pi (no p found in extension)",infile);
+  n_parse_buff[parse_i] = '\0';
+  b->height = atoi(n_parse_buff);
+
+  FILE *in;
+  if(!(in = fopen(infile, "r"))) ERROR("Can't open input file- %s",infile);
+
+  b->bytes = (int)(ceil((b->width*b->height)/8.)+0.01);
+  b->data = calloc(b->bytes*sizeof(byte),1);
+  if(!b->data) ERROR("Out of memory");
+
+  if(!readPixelArray(in, b->data, b->bytes, err)) { fclose(in); return ERR; }
+
+  fclose(in);
+
+  return NO_ERR;
+}
+
 ERR_EXISTS writeBitField(const char *out_name, BitField *b, PixErr *err)
 {
   char out_file[2048];
@@ -160,6 +286,57 @@ ERR_EXISTS writeBitField(const char *out_name, BitField *b, PixErr *err)
   fwrite(b->data, sizeof(byte), b->bytes, out);
 
   fclose(out);
+  return NO_ERR;
+}
+
+ERR_EXISTS readPixImg(const char *infile, PixImg *img, PixErr *err)
+{
+  char n_parse_buff[100];
+  int pbuff_i = 0;
+
+  int parse_i = 0;
+  while(infile[parse_i] != '.' && infile[parse_i] != '\0') parse_i++;
+  if(infile[parse_i] == '\0') ERROR("Filename %s invalid piximage file- expected blah.#x#pi (no . extension found)",infile);
+  parse_i++;
+  pbuff_i = 0;
+  while(infile[parse_i] != 'x' && infile[parse_i] != '\0') { n_parse_buff[pbuff_i] = infile[parse_i]; pbuff_i++; parse_i++; }
+  if(infile[parse_i] == '\0') ERROR("Filename %s invalid piximage file- expected blah.#x#pi (no x found in extension)",infile);
+  n_parse_buff[parse_i] = '\0';
+  img->width = atoi(n_parse_buff);
+  parse_i++;
+  pbuff_i = 0;
+  while(infile[parse_i] != 'p' && infile[parse_i] != '\0') { n_parse_buff[pbuff_i] = infile[parse_i]; pbuff_i++; parse_i++; }
+  if(infile[parse_i] == '\0') ERROR("Filename %s invalid piximage file- expected blah.#x#pi (no p found in extension)",infile);
+  n_parse_buff[parse_i] = '\0';
+  img->height = atoi(n_parse_buff);
+
+  FILE *in;
+  if(!(in = fopen(infile, "r"))) ERROR("Can't open input file- %s",infile);
+
+  int n_bytes = img->width*img->height*4;
+  byte *pa = calloc(n_bytes*sizeof(byte),1);
+  if(!pa) ERROR("Out of memory");
+
+  if(!readPixelArray(in, pa, n_bytes, err)) { fclose(in); return ERR; }
+
+  img->data = calloc(img->width*img->height*sizeof(Pix),1);
+  if(!img->data) ERROR("Out of memory");
+
+  for(int y = 0; y < img->height; y++)
+  {
+    for(int x = 0; x < img->width; x++)
+    {
+      int index = ((y*img->width)+x);
+      img->data[index].r = pa[index*4+0];
+      img->data[index].g = pa[index*4+1];
+      img->data[index].b = pa[index*4+2];
+      img->data[index].a = pa[index*4+3];
+    }
+  }
+
+  free(pa);
+  fclose(in);
+
   return NO_ERR;
 }
 
@@ -301,6 +478,44 @@ static ERR_EXISTS dataToPix(Bitmap *b, PixImg *img, PixErr *err)
   return NO_ERR;
 }
 
+static ERR_EXISTS pixToData(PixImg *img, Bitmap *b, PixErr *err)
+{
+  byte *data = b->pixel_array;
+
+  b->simple.reversed = 0;
+  b->simple.bpp = 32;
+  b->simple.row_w = b->simple.width*4;
+  b->simple.pixel_n_bytes = b->simple.row_w*b->simple.height;
+  b->simple.offset_to_data = 138; //experimentally...
+  b->simple.compression = 3;
+  //experimentally w/ compression = 3
+  b->simple.r_mask = 2;
+  b->simple.g_mask = 1;
+  b->simple.b_mask = 0;
+  b->simple.a_mask = 3;
+
+  int w = b->simple.width;
+  int h = b->simple.height;
+
+  int rmask = b->simple.r_mask;
+  int gmask = b->simple.g_mask;
+  int bmask = b->simple.b_mask;
+  int amask = b->simple.a_mask;
+
+  for(int i = 0; i < h; i++)
+  {
+    for(int j = 0; j < w; j++)
+    {
+      data[((h-1-i)*w*4)+(j*4)+amask] = img->data[(i*w)+j].a;
+      data[((h-1-i)*w*4)+(j*4)+bmask] = img->data[(i*w)+j].b;
+      data[((h-1-i)*w*4)+(j*4)+gmask] = img->data[(i*w)+j].g;
+      data[((h-1-i)*w*4)+(j*4)+rmask] = img->data[(i*w)+j].r;
+    }
+  }
+
+  return NO_ERR;
+}
+
 ERR_EXISTS bitmapToImage(Bitmap *b, PixImg *img, PixErr *err)
 {
   img->width  = b->simple.width;
@@ -311,9 +526,40 @@ ERR_EXISTS bitmapToImage(Bitmap *b, PixImg *img, PixErr *err)
   return NO_ERR;
 }
 
+ERR_EXISTS imageToBitmap(PixImg *img, Bitmap *b, PixErr *err)
+{
+  b->simple.width = img->width;
+  b->simple.height = img->height;
+  b->pixel_array = calloc(b->simple.width*b->simple.height*sizeof(byte)*4,1);
+  if(!b->pixel_array) ERROR("Out of memory");
+  if(!pixToData(img, b, err)) return ERR;
+  return NO_ERR;
+}
+
+ERR_EXISTS bitFieldToImage(BitField *b, PixImg *img, PixErr *err)
+{
+  img->width = b->width;
+  img->height = b->height;
+  img->data = calloc(img->width*img->height*sizeof(Pix),1);
+  if(!img->data) ERROR("Out of memory");
+
+  for(int i = 0; i < img->height; i++)
+  {
+    for(int j = 0; j < img->width; j++)
+    {
+      int index = (i*img->width)+j;
+      int byte_i = index/8;
+      int bit_i = index-(byte_i*8);
+      byte d = b->data[byte_i] | (1 << (8-1-bit_i));
+      if(d) img->data[index].a = 1;
+    }
+  }
+
+  return NO_ERR;
+}
+
 ERR_EXISTS imageToBitField(PixImg *img, BitField *b, PixErr *err)
 {
-
   b->bytes = (int)(ceil((img->width*img->height)/8.)+0.01);
   b->width = img->width;
   b->height = img->height;
