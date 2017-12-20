@@ -153,9 +153,7 @@ ERR_EXISTS writeBitField(const char *out_name, BitField *b, PixErr *err)
   sprintf(out_file,"%s.%dx%dbf",out_name,b->width,b->height);
 
   FILE *out;
-  FILE *fp;
   if(!(out = fopen(out_file, "w"))) ERROR("Can't open output file- %s",out_file);
-  fp = out;
 
   fwrite(b->data, sizeof(byte), b->bytes, out);
 
@@ -185,9 +183,7 @@ ERR_EXISTS writePixImg(const char *out_name, PixImg *img, PixErr *err)
   }
 
   FILE *out;
-  FILE *fp;
   if(!(out = fopen(out_file, "w"))) ERROR("Can't open output file- %s",out_file);
-  fp = out;
 
   fwrite(array, sizeof(byte), array_size, out);
 
