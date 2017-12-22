@@ -15,13 +15,13 @@ SOURCES:=$(filter-out %/test.c, $(ALL_SOURCES))
 ARGS=-i ~/Desktop/img.bmp -o ~/Desktop/img
 
 $(OUTFILE): $(HEADERS) $(SOURCES)
-	$(CC) $(CFLAGS) $(LFLAGS) $(SOURCES) -o $(OUTFILE)
+	$(CC) $(CFLAGS) $(SOURCES) -o $(OUTFILE) $(LFLAGS)
 
 run: $(OUTFILE)
 	./$(OUTFILE) $(ARGS)
 
 $(OUTFILE).dSYM: $(HEADERS) $(SOURCES)
-	$(CC) $(DEBUGFLAGS) $(CFLAGS) $(LFLAGS) $(SOURCES) -o $(OUTFILE)
+	$(CC) $(DEBUGFLAGS) $(CFLAGS) $(SOURCES) -o $(OUTFILE) $(LFLAGS)
 
 debug: $(OUTFILE).dSYM
 	$(DEBUGGER) --args $(OUTFILE) $(ARGS)
