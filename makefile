@@ -16,13 +16,13 @@ ARGS=-i ~/Desktop/img.bmp -o ~/Desktop/img
 ARGS=-r -i ~/Desktop/img.32x32pi -o ~/Desktop/img2
 
 $(OUTFILE): $(HEADERS) $(SOURCES)
-	$(CC) $(CFLAGS) $(LFLAGS) $(SOURCES) -o $(OUTFILE)
+	$(CC) $(CFLAGS) $(SOURCES) -o $(OUTFILE) $(LFLAGS)
 
 run: $(OUTFILE)
 	./$(OUTFILE) $(ARGS)
 
 $(OUTFILE).dSYM: $(HEADERS) $(SOURCES)
-	$(CC) $(DEBUGFLAGS) $(CFLAGS) $(LFLAGS) $(SOURCES) -o $(OUTFILE)
+	$(CC) $(DEBUGFLAGS) $(CFLAGS) $(SOURCES) -o $(OUTFILE) $(LFLAGS)
 
 debug: $(OUTFILE).dSYM
 	$(DEBUGGER) --args $(OUTFILE) $(ARGS)
