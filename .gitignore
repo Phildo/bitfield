@@ -1,5 +1,5 @@
 *.dSYM
-bf
+piximg
 .gdb_bps
 .gdb_history
 tags
