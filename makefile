@@ -1,6 +1,6 @@
 CURDIR = $(shell pwd)
 SRCDIR = .
-OUTFILE = bf
+OUTFILE = piximg
 CC = gcc
 DEBUGGER = gdb -q
 CFLAGS = -Wall -std=c99
